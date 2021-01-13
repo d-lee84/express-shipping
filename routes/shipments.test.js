@@ -55,3 +55,52 @@ describe("POST /", function () {
     expect(resp.statusCode).toEqual(400);
   });
 });
+
+describe("POST /multi", function () {
+  test("valid", async function () {
+    shipItApi.shipProduct
+      .mockReturnValueOnce(24)
+      .mockReturnValueOnce(12);
+
+    const resp = await request(app).post("/shipments/multi").send({
+      productIds: [1000, 1002],
+      name: "Test Tester",
+      addr: "100 Test St",
+      zip: "12345-6789",
+    });
+
+    expect(resp.body).toEqual({ shipped: [24, 12] });
+  });
+
+  test("invalid: productId less than 1000", async function () {
+    const resp = await request(app).post("/shipments/multi").send({
+      productIds: [999, 1000],
+      name: "Test Tester",
+      addr: "100 Test St",
+      zip: "12345-6789",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("invalid: missing field", async function () {
+    const resp = await request(app).post("/shipments/multi").send({
+      productIds: [1203],
+      addr: "100 Test St",
+      zip: "12345-6789",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("invalid: wrong type", async function () {
+    const resp = await request(app).post("/shipments/multi").send({
+      productIds: "1203",
+      name: "hey",
+      addr: "100 Test St",
+      zip: "12345-6789",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+  });
+});
