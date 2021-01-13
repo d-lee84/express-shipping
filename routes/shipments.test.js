@@ -20,6 +20,21 @@ describe("POST /", function () {
     });
 
     expect(resp.body).toEqual({ shipped: 11 });
+
+    shipItApi.shipProduct.mockReturnValue(11);
+  });
+
+  test("valid: different zip code", async function () {
+    shipItApi.shipProduct.mockReturnValue(24);
+
+    const resp = await request(app).post("/shipments").send({
+      productId: 1000,
+      name: "Test Tester",
+      addr: "100 Test St",
+      zip: "12345",
+    });
+
+    expect(resp.body).toEqual({ shipped: 24 });
   });
 
   test("invalid: productId less than 1000", async function () {
@@ -50,6 +65,44 @@ describe("POST /", function () {
       name: 41920481,
       addr: "100 Test St",
       zip: "12345-6789",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("invalid: wrong zipcode pattern", async function () {
+    let resp = await request(app).post("/shipments").send({
+      productId: 1203,
+      name: "41920481",
+      addr: "100 Test St",
+      zip: "A5-6789",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+
+    resp = await request(app).post("/shipments").send({
+      productId: 1203,
+      name: "41920481",
+      addr: "100 Test St",
+      zip: "12345-12",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+
+    resp = await request(app).post("/shipments").send({
+      productId: 1203,
+      name: "41920481",
+      addr: "100 Test St",
+      zip: "12345-112342",
+    });
+
+    expect(resp.statusCode).toEqual(400);
+
+    resp = await request(app).post("/shipments").send({
+      productId: 1203,
+      name: "41920481",
+      addr: "100 Test St",
+      zip: "12345-",
     });
 
     expect(resp.statusCode).toEqual(400);
